@@ -1,0 +1,44 @@
+// Prisma schema
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Add your PostgreSQL connection string to your .env file
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Post {
+  id            Int      @id @default(autoincrement())
+  userId        String   // User ID of the post creator
+  artConfig     Json     // Storing the configuration for the artwork
+  likes         Int      @default(0)
+  likedBy       Like[]   // Relationship to Like model for post likes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Drawing {
+  id            Int      @id @default(autoincrement())
+  userId        String   // User ID of the drawing creator
+  drawing       String   // Base64 image data or URL for the drawing
+  likes         Int      @default(0)
+  likedBy       Like[]   // Relationship to Like model for drawing likes
+  createdAt     DateTime @default(now())
+}
+
+model Like {
+  id            Int      @id @default(autoincrement())
+  postId        Int?     // Post ID that is liked, optional because it can be either post or drawing
+  post          Post?    @relation(fields: [postId], references: [id])
+  drawingId     Int?     // Drawing ID that is liked, optional because it can be either post or drawing
+  drawing       Drawing? @relation(fields: [drawingId], references: [id])
+  userId        String   // User ID of the user who liked the post or drawing
+  createdAt     DateTime @default(now())
+
+  @@unique([postId, userId], map: "unique_post_like")  // Ensure unique like per user per post
+  @@unique([drawingId, userId], map: "unique_drawing_like")  // Ensure unique like per user per drawing
+}
+
+
+  
